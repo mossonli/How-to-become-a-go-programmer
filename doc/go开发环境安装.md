@@ -22,7 +22,7 @@
 
 3 将补丁jetbrains-agent.jar复制到lib目录下
 
-![image-20200328163135469](/Users/mosson/Library/Application Support/typora-user-images/image-20200328163135469.png)
+![image-20200328163135469](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/X7Nyc96QcijfM21*qh5ymbkjxf7dRyphnzJXVR2zPWX33h2UGgK7*dHSKZVqC7qg.26DzcgZdSPta7NbkLc*pg!!/m&bo=XAZgAgAAAAADBxo!&rf=photolist)
 
 ## 4 启动软件
 
@@ -42,18 +42,18 @@ mac或者Linux：/etc/hosts
 
 启动软件
 
-![image-20200328170007778](/Users/mosson/Library/Application Support/typora-user-images/image-20200328170007778.png)
+![image-20200328170007778](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/dnjxTVPfVsTHn6B76MCWBX3bIEJRsCGqsWVoSpVtDkwI.vhURZ6JnQqW58hWnP.T2jViYiWg606N7MJQ8OKzIeR2mEHpkMMS40aYV5QbTLE!/b&bo=XgNCAQAAAAADFyw!&rf=viewer_4)
 
-![image-20200328170050421](/Users/mosson/Library/Application Support/typora-user-images/image-20200328170050421.png)
-
-
+![image-20200328170050421](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/dnjxTVPfVsTHn6B76MCWBQEoiCvwx5h0PvvgAB.oSOQf0UepogS0GNKCRvCmq*vlxXjZA5C1TMvImgWg4HR71S7sJKBtCJMuTKBCnCgJgUQ!/b&bo=sAM2AwAAAAADF7Q!&rf=viewer_4)
 
 
 
-![image-20200328164050357](/Users/mosson/Library/Application Support/typora-user-images/image-20200328164050357.png)
+
+
+![image-20200328164050357](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/dnjxTVPfVsTHn6B76MCWBdVs17tcZTN3ORSKQRQkgxyJ0HkKiV2wO3YhSAPshPomNhUGX2baABDSkJbliSpf08co6QQs09Bnp1qkmq26HEs!/b&bo=zAMwAQAAAAADF8w!&rf=viewer_4)
 
 激活成功
 
-![image-20200328164113369](/Users/mosson/Library/Application Support/typora-user-images/image-20200328164113369.png)
+![image-20200328164113369](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/dnjxTVPfVsTHn6B76MCWBa98C1kh2MTLW7MPstpKCB9kbwG2kHzsL6qItject60vtc39vUYoLLRbBWZBfuuPOZwogIvdmxujeCaIM38O.SQ!/b&bo=BAVCAQAAAAADF3A!&rf=viewer_4)
 
-![image-20200328170352713](/Users/mosson/Library/Application Support/typora-user-images/image-20200328170352713.png)
+![image-20200328170352713](http://m.qpic.cn/psc?/V11zJNSn1iYfOW/dnjxTVPfVsTHn6B76MCWBdHOzCVOLKAViEwvZYZLF8EtwEYL3xaO9L9xFyTlXDs2SxI.*GBYSt6Hij0wJvN9HUhJRGcyHVb8Y75Ux33xcmM!/b&bo=6AQmAwAAAAADN9s!&rf=viewer_4)
