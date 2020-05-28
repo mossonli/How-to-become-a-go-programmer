@@ -37,7 +37,7 @@
 		读未提交
 		读已提交，oracle是默认这个级别的	
 		可重复读，是mysql的默认隔离级别
-		串行化
+		串行化		// 效率非常低下
 ```
 
 ### mysql常见的数据类型
@@ -85,6 +85,27 @@ go get -u github.com/go-sql-driver/mysql
 go get github.com/jmoiron/sqlx
 _"github.com/go-sql-driver/mysql"    //只是加载驱动
 "github.com/jmoiron/sqlx"						 //里面是操作mysql的具体	
+```
 
+`1 连接数据库`
+
+```go
+import _ "github.com/go-sql-driver/mysql"
+import "github.com/jmoiron/sqlx"
+
+func main()  {
+	// 1 连接数据库
+	db, _ := sqlx.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/firstTest")
+	defer db.Close()
+	// 2 添加 使用? 进行占位避免sql注入，返回值是受影响的行数
+	result, _ := db.Exec("insert into person(name,age,money,birthday) values(?,?,?,?)",
+		"张三", 20, 100.5, 20190101)
+	// 查看受影响的行数
+	row, _ := result.RowsAffected()
+	// 返回受影响的最后一个id
+	lastId,_ := result.LastInsertId()
+	fmt.Printf("首影响的函数%d，受影响的最后一个id:%d\n", row, lastId)
+}
+//首影响的函数1，受影响的最后一个id是1
 ```
 
