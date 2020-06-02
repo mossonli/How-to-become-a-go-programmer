@@ -1,4 +1,4 @@
-### sql的分类
+###  sql的分类
 
 ```html
 1 DDL（Data Definition Language）：数据定义语言，用来定义数据库对象：库、表、列等，例如CREATE、ALTER、DROP
@@ -87,7 +87,7 @@ _"github.com/go-sql-driver/mysql"    //只是加载驱动
 "github.com/jmoiron/sqlx"						 //里面是操作mysql的具体	
 ```
 
-`1 连接数据库`
+`1 连接数据库and数据的增删改`
 
 ```go
 import _ "github.com/go-sql-driver/mysql"
@@ -105,7 +105,52 @@ func main()  {
 	// 返回受影响的最后一个id
 	lastId,_ := result.LastInsertId()
 	fmt.Printf("首影响的函数%d，受影响的最后一个id:%d\n", row, lastId)
+  // 3 修改数据
+  db.Exec("update person set name=? where name=?","李四", "张三")
+  // 4 删除数据
+  db.Exec("delete from person where id=?", 2)
+  // 5 事务操作
+  tx := db.MustBegin()
+  tx.MustExec("要执行的sql")
+  err := tx.Commit()
+  if err != nil{
+    fmt.Println(",,,,,")
+    tx.RollBack()
+  }
 }
 //首影响的函数1，受影响的最后一个id是1
 ```
+
+`2 数据库的查询`
+
+```go
+// 查询出来的结果要映射到具体的对象上
+import _ "github.com/go-sql-driver/mysql"
+import "github.com/jmoiron/sqlx"
+
+type Person struct {
+	Id       int       `db:"id"`
+	Name     string    `db:"name"`
+	Age      int       `db:"age"`
+	Money    float64   `db:"money"`
+	Birthday time.Time `db:"birthday"`
+}
+func main() {
+	// 1 建立数据库连接
+	// go默认不支持时间解析，需要在建立链接的时候加上时间解析的参数 parseTime=true
+	db, _ := sqlx.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/firstTest?parseTime=true")
+	defer db.Close()
+	// 2 查询
+	var ps []Person
+	err := db.Select(&ps, "select name,age from person where id=?", 1)
+	if err != nil{
+		fmt.Println(err)
+	}
+	fmt.Printf("%v\n", ps)
+}
+```
+
+
+
+
 
