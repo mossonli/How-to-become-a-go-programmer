@@ -150,6 +150,237 @@ func main() {
 }
 ```
 
+### mysql的操作
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"io"
+	"os"
+	"strings"
+	"time"
+)
+
+
+//
+type KFPerson struct {
+	Id     int    `db:"id"`
+	Name   string `db:"name"`
+	Idcard string `db:"idcard"`
+}
+
+// 错误处理方法
+func HandleError(err error, why string) {
+	if err != nil {
+		fmt.Println(err, why)
+	}
+}
+
+// 全局变量
+var (
+	// 读写数据的管道
+	chanData chan *KFPerson
+	db       *sqlx.DB
+)
+
+// 数据导入
+func init() {
+	// 第一次加载
+	// 判断有没有加载过
+	exits := CheckFileExist("kaifang.txt")
+	if exits {
+		fmt.Println("数据已经初始化")
+		return
+	}
+	// 连接数据库
+	var err error
+	db, err = sqlx.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/firstTest?parseTime=true")
+	HandleError(err, "sql open")
+	fmt.Println("====", db)
+	defer db.Close()
+	fmt.Println("数据库已经连接")
+	_, err = db.Exec("create table if not exists kfperson " +
+		"(id int primary key auto_increment," +
+		"name varchar(20)," +
+		"idcard char(18))")
+	HandleError(err, "create table")
+	fmt.Println("建表成功")
+	// ======= 数据 入库的方案
+	// 数据存管道，通过携程存到数据库
+	// 初始化数据通道
+	chanData = make(chan *KFPerson, 1000000)
+	// 启动100个携程 插入数据库
+	for i := 0; i < 100; i++ {
+		go insertKFPerson()
+	}
+
+	// 打开 kaifang_good数据
+	file, e := os.Open("kaifang.txt")
+	HandleError(e, "os.Open")
+	defer file.Close()
+	// 利用缓存读取文件
+	reader := bufio.NewReader(file)
+	fmt.Println("大数据文本已经打开")
+	// 利用循环读取数据
+	for {
+		lineBytes, _, err := reader.ReadLine()
+		HandleError(err, "readLine")
+		if err == io.EOF {
+			// 文件读取结束，关闭通道
+			close(chanData)
+			break
+		}
+		// 数据存入数据库
+		lineStr := string(lineBytes)
+		// 对数据进行切割
+		fields := strings.Split(lineStr, ",")
+		if len(fields) < 2{
+			fmt.Println(fields)
+			continue
+		}
+		name, idcard := fields[0], fields[1]
+		// 对name进行去空格
+		name = strings.TrimSpace(name)
+		// 如果name过长就不要了
+		if len(name) > 20 {
+			fmt.Printf("name：%s太长，不要了", name)
+			continue
+		}
+		// 数据组装 塞进管道
+		kfPerson := KFPerson{Name: name, Idcard: idcard}
+		// 数据存入管道
+		chanData <- &kfPerson
+	}
+	fmt.Println("数据初始化成功")
+	// 创建标记
+	_, err = os.Create("kaifang_done.txt")
+	HandleError(err, "os.Create")
+}
+
+// 将数据管道中的数据插入数据库
+func insertKFPerson() {
+	// 遍历管道拿数据
+	for kfPerson := range chanData {
+		// 循环插入数据库
+		for {
+			utf8Data, _ := simplifiedchinese.GBK.NewDecoder().Bytes([]byte(kfPerson.Name))
+			fmt.Printf("====%c====\n", utf8Data)
+			result, err := db.Exec("insert into kfperson(name, idcard) value (?,?)",
+				kfPerson.Name, kfPerson.Idcard)
+			HandleError(err, "db insert")
+			if err != nil {
+				<-time.After(5 * time.Second)
+			} else {
+				if n, e := result.RowsAffected(); e == nil && n > 0 {
+					fmt.Printf("插入%s成功 ", kfPerson.Name)
+					break
+				}
+			}
+		}
+	}
+}
+
+// 判断标记
+func CheckFileExist(filename string) (exits bool) {
+	// 判断文件是不是存在
+	fileInfo, err := os.Stat(filename)
+	if fileInfo != nil && err != nil {
+		exits = true
+	} else {
+		exits = false
+	}
+	return
+}
+
+// 抽象一个缓存的结构体
+type QueryResult struct {
+	// 包含查询到的数据
+	value []KFPerson
+	// cacheTime 加入缓存的时间
+	cacheTime int64
+	// 记录被查询的次数，可以查看缓存的利用率
+	count int
+}
+// 获取加入缓存的时间
+func (qr *QueryResult) GetCacheTime() int64 {
+	return qr.cacheTime
+}
+func main() {
+	// 数据链接
+	db, err := sqlx.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/firstTest?parseTime=true")
+	HandleError(err, "sql open")
+	fmt.Println("====", db)
+	defer db.Close()
+	// 实现缓存 利用map做缓存
+	var kfMap = make(map[string]QueryResult, 0)
+	// 死循环
+	for {
+		var name string
+		fmt.Println("请输入要查询的姓名：")
+		fmt.Scanf("%s", &name)
+		if name == "exit"{
+			break
+		}else if name == "cache"{
+			// 先查缓存
+			fmt.Printf("共缓存了%d数据", len(kfMap))
+			for key := range kfMap{
+				fmt.Println(key)
+			}
+			continue
+		}
+		// 操作缓存查询
+		if qr, ok := kfMap[name];ok{
+			qr.count += 1
+			// 从缓存来取
+			fmt.Printf("查询到%d结果：\n", len(qr.value))
+			fmt.Println(qr.value)
+
+		}
+		// 走数据库
+		// 1 查询数据库
+		kfpeople := make([]KFPerson, 0)
+		e := db.Select(&kfpeople, "select id,name,idcard from kfperson where name=?", name)
+		HandleError(e, "db.select")
+		fmt.Printf("查询到%d条结果", len(kfpeople))
+		fmt.Println(kfpeople)
+		// 2 结果丢入内存
+		queryResult := QueryResult{value: kfpeople}
+		queryResult.cacheTime = time.Now().UnixNano()
+		queryResult.count = 1
+		kfMap[name] = queryResult
+		// 3 缓存数据大于2，淘汰第一个存入的数据
+		if len(kfMap) > 2{
+			// 删除第一个存入的
+			UpdateCache(&kfMap)
+		}
+	}
+	fmt.Println("done")
+}
+
+
+// 实现缓存策略，删除最早加入的
+func UpdateCache(cacheMap *map[string]QueryResult)(delkey string){
+	// 预定一个时间
+	myTime := time.Now().UnixNano()
+	for key,timeData := range *cacheMap{
+		if timeData.GetCacheTime() < myTime{
+			myTime = timeData.GetCacheTime()
+			delkey = key
+		}
+	}
+	// 出了循环，此时myTime才是要被删除的数据
+	delete(*cacheMap, delkey)
+	return delkey
+}
+
+```
+
 
 
 
