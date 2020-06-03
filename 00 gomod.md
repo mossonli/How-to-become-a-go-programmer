@@ -42,7 +42,7 @@ go mod download
 ## 6 导入依赖
 
 ```go
-go mod vender
+go mod vendor
 执行此命令,会将刚才下载至 GOPATH 下的依赖转移至该项目根目录下的 vendor(自动新建) 文件夹下
 ```
 
