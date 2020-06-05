@@ -285,9 +285,149 @@ curl http://127.0.0.1:8000/v2/login -X POST
 ```go
 gin 是采用httprouter的路由规则【高效】
 httprouter会将所有的路由规则，构造一颗前缀树
+gin的底层是哟过树的形式去做路由
 ```
 
+## Gin数据解析和绑定
 
+`1 json数据解析和绑定`
 
+```go
+// 客户端传参解析到结构体
+// 定义结构体
+// binding:"required" 必须要带usernmae 这个参数，要不然报错
+type Login struct {
+	Username string `json:"username" form:"username" uri:"username" binding:"required"`
+	Password string `json:"password" form:"password" uri:"username" binding:"required"`
+}
 
+func main() {
+	router := gin.Default()
+	// 绑定json数据
+	router.POST("/loginJSON", func(c *gin.Context) {
+		// 用于接收json数据结构体
+		var json Login
+		if err := c.ShouldBindJSON(&json);err != nil{
+			// 此时想用json返回
+			// gin.H 工具封装了生成json数据的工具
+			c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+			return
+		}
+		// 数据没有出错
+		if json.Username != "root" && json.Password == "admin"{
+			c.JSON(http.StatusUnauthorized, gin.H{"status":"304"})
+			return
+		}
+		// 登陆成功
+		c.JSON(http.StatusOK, gin.H{"status":200})
+	})
+	_ = router.Run(":8000")
+}
+```
 
+```go
+// 测试访问可以用 postman
+curl http://127.0.0.1:8000/loginJSON -H `content-type:application/json` -d "{\"username\":\"root\",\"password\":\"admin\"}" -X POST
+```
+
+`2 表单数据的解析`
+
+```html
+// form.html
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+</head>
+<body>
+<form action="http://127.0.0.1:8000/loginForm" method="post" enctype="application/x-www-form-urlencoded">
+    用户名：<input type="text" name="username"> <br>
+    密码：<input type="password" name="password"><br>
+    <input type="submit" value="登录">
+</form>
+</body>
+</html>
+```
+
+```go
+// formDemo.go
+package main
+
+import (
+   "github.com/gin-gonic/gin"
+   "net/http"
+)
+
+// 定义个结构体
+// curl传用户名和密码，这里验证
+// binding:"required" 修饰必须带此参数
+type Login struct {
+   Username string `json:"username" form:"username" uri:"username" binding:"required"`
+   Password string `json:"password" form:"password" uri:"password" binding:"required"`
+}
+
+func main() {
+   router := gin.Default()
+   // JSON数据绑定
+   router.POST("/loginForm", func(c *gin.Context) {
+      // 先定义结构体，接收数据
+      var form Login
+      // 表单解析和绑定
+      if err := c.Bind(&form); err != nil {
+         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+         return
+      }
+      if form.Username != "root" || form.Password != "admin" {
+         c.JSON(http.StatusUnauthorized, gin.H{"status": "304"})
+         return
+      }
+      c.JSON(http.StatusOK, gin.H{"status": "200"})
+   })
+   _ = router.Run(":8000")
+}
+
+```
+
+`3 uri数据的解析和绑定`
+
+```go
+package main
+
+import (
+   "github.com/gin-gonic/gin"
+   "net/http"
+)
+
+// 定义个结构体
+// curl传用户名和密码，这里验证
+// binding:"required" 修饰必须带此参数
+type Login struct {
+   Username string `json:"username" form:"username" uri:"username" binding:"required"`
+   Password string `json:"password" form:"password" uri:"password" binding:"required"`
+}
+
+func main() {
+   router := gin.Default()
+   // URI数据绑定
+   router.GET("/:username/:password", func(c *gin.Context) {
+      // 先定义结构体，接收数据
+      var login Login
+      // 表单解析和绑定
+      if err := c.ShouldBindUri(&login); err != nil {
+         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+         return
+      }
+      if login.Username != "root" || login.Password != "admin" {
+         c.JSON(http.StatusUnauthorized, gin.H{"status": "304"})
+         return
+      }
+      c.JSON(http.StatusOK, gin.H{"status": "200"})
+   })
+   _ = router.Run(":8000")
+}
+```
+
+```html
+curl http://127.0.0.1:8000/root/admin
+```
