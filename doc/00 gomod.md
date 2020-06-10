@@ -24,6 +24,7 @@ go module 是在go1.13版本之后的
 
 ```go
 go mod init xxx // xxx为项目名
+// 进入到项目目录进行init 初始化设置
 ```
 
 ## 4 检查项目依赖
