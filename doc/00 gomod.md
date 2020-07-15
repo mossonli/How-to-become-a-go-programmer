@@ -14,7 +14,7 @@ go module 是在go1.13版本之后的
 3 auto 这种模式是默认的模式，也就是说在你不设置的情况下，就是auto。这种情况下，go命令行会根据当前目录来决定是否启用module功能。只有当当前目录在GOPATH/src目录之外而且当前目录包含go.mod文件或者其子目录包含go.mod文件才会启用。
 ```
 
-## 2 设置代理
+## 2 设置代理【加速库的下载】
 
 ```go
  ~$ go env -w GOPROXY=https://goproxy.cn,direct // 临时生效，重启失效
@@ -75,4 +75,6 @@ go mod edit  # 手动修改依赖文件
 go mod graph  # 打印依赖图
 go mod verify  # 校验依赖
 ```
+
+
 
